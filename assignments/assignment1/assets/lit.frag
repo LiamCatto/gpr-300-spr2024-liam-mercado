@@ -13,6 +13,8 @@ uniform vec3 _EyePos;
 uniform vec3 _LightDirection = vec3(0.0,-1.0,0.0);
 uniform vec3 _LightColor = vec3(1.0);
 uniform vec3 _AmbientColor = vec3(0.3,0.4,0.46);
+uniform sampler2D _ColorBuffer;
+
 
 struct Material{
 	float Ka; //Ambient coefficient (0-1)

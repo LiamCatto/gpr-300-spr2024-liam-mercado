@@ -44,6 +44,9 @@ int main() {
 	ew::Transform monkeyTransform;
 	ew::CameraController cameraController;
 
+	unsigned int dummyVAO;
+	glCreateVertexArrays(1, &dummyVAO);
+
 	camera.position = glm::vec3(0.0f, 0.0f, 5.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); //Look at the center of the scene
 	camera.aspectRatio = (float)screenWidth / screenHeight;
@@ -56,6 +59,7 @@ int main() {
 	//Make "_MainTex" sampler2D sample from the 2D texture bound to unit 0
 	shader.use();
 	shader.setInt("_MainTex", 0);
+	// create new shader for post-process
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //Back face culling
@@ -90,11 +94,12 @@ int main() {
 		shader.setFloat("_Material.Ks", material.Ks);
 		shader.setFloat("_Material.Shininess", material.Shininess);
 
+		glBindVertexArray(dummyVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
 		monkeyModel.draw(); //Draws monkey model using current shader
 
 		cameraController.move(window, &camera, deltaTime);
-
-		//left off at Texturing section
 
 		drawUI(&camera, &cameraController);
 
