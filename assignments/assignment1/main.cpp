@@ -46,6 +46,7 @@ int main() {
 	GLuint brickTexture = ew::loadTexture("assets/brick_color.jpg");
 
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag");
+	ew::Shader postShader = ew::Shader("assets/post.vert", "assets/post.frag");
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 	ew::Camera camera;
 	ew::Transform monkeyTransform;
@@ -77,17 +78,26 @@ int main() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, brickTexture);
 
-	unsigned int vao = createVAO(vertices, 4, indices, 6);
-	glBindVertexArray(vao);
-
 	//Make "_MainTex" sampler2D sample from the 2D texture bound to unit 0
 	shader.use();
 	shader.setInt("_MainTex", 0);
-	// create new shader for post-process
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //Back face culling
 	glEnable(GL_DEPTH_TEST); //Depth testing
+
+	unsigned int colorFBO;
+	glGenFramebuffers(1, &colorFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, colorFBO);
+
+	/*unsigned int colorTexture;
+	glGenTextures(1, &colorTexture);
+	glBindTextureUnit(1, colorTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture);
+
+	postShader.use();
+	postShader.setInt("_ColorBuffer", 1);*/
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
@@ -108,7 +118,7 @@ int main() {
 		shader.setVec3("_EyePos", camera.position);
 
 		//Rotate model around Y axis
-		//monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
+		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
 
 		//transform.modelMatrix() combines translation, rotation, and scale into a 4x4 model matrix
 		shader.setMat4("_Model", monkeyTransform.modelMatrix());
@@ -118,10 +128,22 @@ int main() {
 		shader.setFloat("_Material.Ks", material.Ks);
 		shader.setFloat("_Material.Shininess", material.Shininess);
 
-		glBindVertexArray(dummyVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
 		monkeyModel.draw(); //Draws monkey model using current shader
+
+		/*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		postShader.use();
+		glBindVertexArray(dummyVAO);
+		glDisable(GL_DEPTH_TEST); //Depth testing
+		glBindTexture(GL_TEXTURE_2D, colorTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 6);*/
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		postShader.use();
+		postShader.setInt("_ColorBuffer", 1); 
+		glBindTextureUnit(1, colorFBO);
+		glBindVertexArray(dummyVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6); //6 for quad, 3 for triangle
 
 		cameraController.move(window, &camera, deltaTime);
 
@@ -196,33 +218,4 @@ GLFWwindow* initWindow(const char* title, int width, int height) {
 	ImGui_ImplOpenGL3_Init();
 
 	return window;
-}
-
-unsigned int createVAO(float* vertexData, int numVertices, unsigned int* indicesData, int numIndices)
-{
-	unsigned int vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	//Define a new buffer id
-	unsigned int vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	//Allocate space for + send vertex data to GPU.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * numVertices * 5, vertexData, GL_STATIC_DRAW);
-
-	unsigned int ebo;
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * numIndices, indicesData, GL_STATIC_DRAW);
-
-	//Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, x));
-	glEnableVertexAttribArray(0);
-
-	//UV
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, u)));
-	glEnableVertexAttribArray(1);
-
-	return vao;
 }
