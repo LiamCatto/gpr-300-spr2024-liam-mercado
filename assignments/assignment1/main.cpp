@@ -90,14 +90,16 @@ int main() {
 	glGenFramebuffers(1, &colorFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, colorFBO);
 
-	/*unsigned int colorTexture;
+	unsigned int colorTexture;
 	glGenTextures(1, &colorTexture);
 	glBindTextureUnit(1, colorTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture);
 
+	// Implement a depth buffer
+
 	postShader.use();
-	postShader.setInt("_ColorBuffer", 1);*/
+	postShader.setInt("_ColorBuffer", 1);
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
@@ -109,6 +111,7 @@ int main() {
 		prevFrameTime = time;
 
 		//RENDER
+		glBindFramebuffer(GL_FRAMEBUFFER, colorFBO);
 		glClearColor(0.6f,0.8f,0.92f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -141,7 +144,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		postShader.use();
 		postShader.setInt("_ColorBuffer", 1); 
-		glBindTextureUnit(1, colorFBO);
+		glBindTextureUnit(1, colorTexture);
 		glBindVertexArray(dummyVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6); //6 for quad, 3 for triangle
 
