@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
 
 #include <ew/external/glad.h>
 #include <ew/shader.h>
@@ -86,17 +87,24 @@ int main() {
 	glCullFace(GL_BACK); //Back face culling
 	glEnable(GL_DEPTH_TEST); //Depth testing
 
-	unsigned int colorFBO;
-	glGenFramebuffers(1, &colorFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, colorFBO);
+	unsigned int fbo;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 	unsigned int colorTexture;
 	glGenTextures(1, &colorTexture);
 	glBindTextureUnit(1, colorTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, colorTexture, 0);
 
-	// Implement a depth buffer
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fboStatus != GL_FRAMEBUFFER_COMPLETE) std::cout << "Framebuffer error: " << fboStatus << std::endl;
 
 	postShader.use();
 	postShader.setInt("_ColorBuffer", 1);
@@ -111,9 +119,12 @@ int main() {
 		prevFrameTime = time;
 
 		//RENDER
-		glBindFramebuffer(GL_FRAMEBUFFER, colorFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glClearColor(0.6f,0.8f,0.92f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK); //Back face culling
+		glEnable(GL_DEPTH_TEST); //Depth testing
 
 		shader.use();
 		shader.setMat4("_Model", glm::mat4(1.0f));
@@ -140,17 +151,19 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, colorTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);*/
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		postShader.use();
-		postShader.setInt("_ColorBuffer", 1); 
-		glBindTextureUnit(1, colorTexture);
-		glBindVertexArray(dummyVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6); //6 for quad, 3 for triangle
-
 		cameraController.move(window, &camera, deltaTime);
 
 		drawUI(&camera, &cameraController);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		postShader.use();
+		//postShader.setInt("_ColorBuffer", 1);
+		glBindTextureUnit(1, colorTexture);
+		glBindVertexArray(dummyVAO);
+		glDisable(GL_DEPTH_TEST); //Depth testing
+		glDisable(GL_CULL_FACE);
+		glDrawArrays(GL_TRIANGLES, 0, 6); //6 for quad, 3 for triangle
 
 		glfwSwapBuffers(window);
 	}
