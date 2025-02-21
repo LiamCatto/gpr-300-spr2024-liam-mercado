@@ -40,6 +40,12 @@ struct Vertex {
 	int x, y, z, u, v;
 };
 
+struct PostProcess {
+	float sharpenFactor = 0.15;
+	bool sharpen = 0;
+	bool invertColor = 0;
+}post;
+
 int main() {
 	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
 
@@ -145,22 +151,21 @@ int main() {
 		shader.setFloat("_Material.Shininess", material.Shininess);
 
 		glBindTexture(GL_TEXTURE_2D, brickTexture);
-		monkeyModel.draw(); //Draws monkey model using current shader
 
-		/*glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		postShader.use();
-		glBindVertexArray(dummyVAO);
-		glDisable(GL_DEPTH_TEST); //Depth testing
-		glBindTexture(GL_TEXTURE_2D, colorTexture);
-		glDrawArrays(GL_TRIANGLES, 0, 6);*/
+		monkeyModel.draw(); //Draws monkey model using current shader
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		postShader.use();
-		postShader.setInt("_ColorBuffer", 0);
-		glBindTextureUnit(0, colorTexture);
+		glBindTexture(GL_TEXTURE_2D, colorTexture);
 		glBindVertexArray(dummyVAO);
 		glDisable(GL_CULL_FACE);
+
+		postShader.use();
+		postShader.setInt("_ColorBuffer", 0);
+		postShader.setFloat("sharpenFactor", post.sharpenFactor);
+		postShader.setInt("sharpen", post.sharpen);
+		postShader.setInt("invertColor", post.invertColor);
+
 		glDrawArrays(GL_TRIANGLES, 0, 6); //6 for quad, 3 for triangle
 
 		cameraController.move(window, &camera, deltaTime);
@@ -183,6 +188,11 @@ void drawUI(ew::Camera* camera, ew::CameraController* cameraController) {
 		ImGui::SliderFloat("DiffuseK", &material.Kd, 0.0f, 1.0f);
 		ImGui::SliderFloat("SpecularK", &material.Ks, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
+	}
+	if (ImGui::CollapsingHeader("Post Process")) {
+		ImGui::SliderFloat("sharpenFactor", &post.sharpenFactor, -1.0f, 1.0f);
+		ImGui::Checkbox("sharpen", &post.sharpen);
+		ImGui::Checkbox("invertColor", &post.invertColor);
 	}
 	ImGui::End();
 
