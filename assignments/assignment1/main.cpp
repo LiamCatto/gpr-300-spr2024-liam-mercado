@@ -115,7 +115,7 @@ int main() {
 	if (fboStatus != GL_FRAMEBUFFER_COMPLETE) std::cout << "Framebuffer error: " << fboStatus << std::endl;
 
 	postShader.use();
-	postShader.setInt("_ColorBuffer", 1);
+	postShader.setInt("_ColorBuffer", 0);
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
@@ -190,7 +190,7 @@ void drawUI(ew::Camera* camera, ew::CameraController* cameraController) {
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
 	}
 	if (ImGui::CollapsingHeader("Post Process")) {
-		ImGui::SliderFloat("sharpenFactor", &post.sharpenFactor, -1.0f, 1.0f);
+		ImGui::SliderFloat("sharpenFactor", &post.sharpenFactor, -0.2f, 0.2f);
 		ImGui::Checkbox("sharpen", &post.sharpen);
 		ImGui::Checkbox("invertColor", &post.invertColor);
 	}
