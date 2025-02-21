@@ -93,9 +93,11 @@ int main() {
 
 	unsigned int colorTexture;
 	glGenTextures(1, &colorTexture);
-	glBindTextureUnit(1, colorTexture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, colorTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, colorTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);
@@ -142,6 +144,7 @@ int main() {
 		shader.setFloat("_Material.Ks", material.Ks);
 		shader.setFloat("_Material.Shininess", material.Shininess);
 
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
 		monkeyModel.draw(); //Draws monkey model using current shader
 
 		/*glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -151,19 +154,18 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, colorTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);*/
 
-		cameraController.move(window, &camera, deltaTime);
-
-		drawUI(&camera, &cameraController);
-
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		postShader.use();
-		//postShader.setInt("_ColorBuffer", 1);
-		glBindTextureUnit(1, colorTexture);
+		postShader.setInt("_ColorBuffer", 0);
+		glBindTextureUnit(0, colorTexture);
 		glBindVertexArray(dummyVAO);
-		glDisable(GL_DEPTH_TEST); //Depth testing
 		glDisable(GL_CULL_FACE);
 		glDrawArrays(GL_TRIANGLES, 0, 6); //6 for quad, 3 for triangle
+
+		cameraController.move(window, &camera, deltaTime);
+
+		drawUI(&camera, &cameraController);
 
 		glfwSwapBuffers(window);
 	}
