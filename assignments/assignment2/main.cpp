@@ -39,6 +39,7 @@ int main() {
 	GLuint brickTexture = ew::loadTexture("assets/brick_color.jpg");
 
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag");
+	ew::Shader shadowShader = ew::Shader("assets/shadow.vert", "assets/shadow.frag");
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 	ew::Camera camera;
 	ew::Transform monkeyTransform;
@@ -48,6 +49,15 @@ int main() {
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); //Look at the center of the scene
 	camera.aspectRatio = (float)screenWidth / screenHeight;
 	camera.fov = 60.0f; //Vertical field of view, in degrees
+
+	float lightNearPlane = 1.0f, lightFarPlane = 7.5f;
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
+	glm::mat4 lightView = glm::lookAt(
+		glm::vec3(-2.0f, 4.0f, -1.0f),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
+	);
+	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
 	//Bind brick texture to texture unit 0 
 	glActiveTexture(GL_TEXTURE0);
@@ -111,6 +121,9 @@ int main() {
 
 		// Shadow Pass
 
+		shadowShader.use();
+		shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -131,7 +144,7 @@ int main() {
 
 
 
-		// Left off on Light Space Transform in the tutorial and Lighting Pass in the slide show
+		// Left off on Rendering Shadows in the tutorial and Improvements in the slide show
 
 
 
