@@ -50,6 +50,22 @@ int main() {
 	camera.aspectRatio = (float)screenWidth / screenHeight;
 	camera.fov = 60.0f; //Vertical field of view, in degrees
 
+	ew::Mesh floor;
+	ew::MeshData floorData = 
+	{
+		{
+			{ {-3, -2, -3}, {0, 1, 0}, {0, 0} },
+			{ {-3, -2,  3}, {0, 1, 0}, {0, 1} },
+			{ { 3, -2,  3}, {0, 1, 0}, {1, 1} },
+			{ { 3, -2, -3}, {0, 1, 0}, {1, 0} }
+		},
+		{
+			0, 1, 2,
+			0, 2, 3
+		}
+	};
+	floor.load(floorData);
+
 	float lightNearPlane = 1.0f, lightFarPlane = 7.5f;
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
 	glm::mat4 lightView = glm::lookAt(
@@ -129,6 +145,7 @@ int main() {
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		monkeyModel.draw(); //Draws monkey model using current shader
+		floor.draw(ew::DrawMode::TRIANGLES);
 		cameraController.move(window, &camera, deltaTime);
 
 		// Lighting Pass
@@ -140,6 +157,10 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 
 		monkeyModel.draw(); //Draws monkey model using current shader
+
+		shader.setMat4("_Model", glm::mat4(1.0f));
+		floor.draw(ew::DrawMode::TRIANGLES);
+
 		cameraController.move(window, &camera, deltaTime);
 
 
