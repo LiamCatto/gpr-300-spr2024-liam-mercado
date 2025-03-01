@@ -32,6 +32,8 @@ struct Material {
 	float Shininess = 128;
 }material;
 
+glm::vec3 lightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+
 int main() {
 	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
 
@@ -67,21 +69,10 @@ int main() {
 	floor.load(floorData);
 
 	float lightNearPlane = 1.0f, lightFarPlane = 7.5f;
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
-	glm::mat4 lightView = glm::lookAt(
-		glm::vec3(-2.0f, 4.0f, -1.0f),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
-	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
 	//Bind brick texture to texture unit 0 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, brickTexture);
-
-	//Make "_MainTex" sampler2D sample from the 2D texture bound to unit 0
-	shader.use();
-	shader.setInt("_MainTex", 0);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //Back face culling
@@ -97,7 +88,7 @@ int main() {
 
 	unsigned int depthMap;
 	glGenTextures(1, &depthMap);
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0); 
@@ -107,6 +98,11 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//Make "_MainTex" sampler2D sample from the 2D texture bound to unit 0
+	shader.use();
+	shader.setInt("_MainTex", 0);
+	shader.setInt("shadowMap", 1); // Added by Liam
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
@@ -119,7 +115,48 @@ int main() {
 
 		//RENDER
 
+		// Shadow Pass
+
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
+		glm::mat4 lightView = glm::lookAt(
+			//glm::vec3(-2.0f, 4.0f, -1.0f),
+			glm::vec3(0.0f, 4.0f, 0.0f),
+			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		);
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+		shadowShader.use();
+		shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		monkeyModel.draw(); //Draws monkey model using current shader
+
+		floor.draw(ew::DrawMode::TRIANGLES);
+		
+		cameraController.move(window, &camera, deltaTime);
+
+		// Lighting Pass
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, screenWidth, screenHeight);
+		glClearColor(0.6f, 0.8f, 0.92f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+
 		shader.use();
+		shader.setMat4("lightSpaceMatrix", lightSpaceMatrix); // Added by Liam
+		shader.setVec3("_LightDirection", lightDirection);	// Added by Liam
+		shader.setInt("shadowMap", 1); // Added by Liam
 		shader.setMat4("_Model", glm::mat4(1.0f));
 		shader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
 		shader.setVec3("_EyePos", camera.position);
@@ -135,27 +172,6 @@ int main() {
 		shader.setFloat("_Material.Ks", material.Ks);
 		shader.setFloat("_Material.Shininess", material.Shininess);
 
-		// Shadow Pass
-
-		shadowShader.use();
-		shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		monkeyModel.draw(); //Draws monkey model using current shader
-		floor.draw(ew::DrawMode::TRIANGLES);
-		cameraController.move(window, &camera, deltaTime);
-
-		// Lighting Pass
-
-		glViewport(0, 0, screenWidth, screenHeight);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClearColor(0.6f, 0.8f, 0.92f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-
 		monkeyModel.draw(); //Draws monkey model using current shader
 
 		shader.setMat4("_Model", glm::mat4(1.0f));
@@ -165,7 +181,12 @@ int main() {
 
 
 
-		// Left off on Rendering Shadows in the tutorial and Improvements in the slide show
+		// Left off on Improving Shadow Maps in the tutorial and Improvements in the slide show
+
+		// Shadows aren't appearing on the plane at all. Maybe the light space calculations are wrong?
+
+		// try debugging by looking at the tutorial's debug depth map shaders and display the depth map on the floor plane
+
 
 
 
@@ -187,6 +208,9 @@ void drawUI(ew::Camera* camera, ew::CameraController* cameraController) {
 		ImGui::SliderFloat("DiffuseK", &material.Kd, 0.0f, 1.0f);
 		ImGui::SliderFloat("SpecularK", &material.Ks, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
+	}
+	if (ImGui::CollapsingHeader("Lighting")) {
+		ImGui::InputFloat3("Light Direction", &lightDirection.x);
 	}
 	ImGui::End();
 
