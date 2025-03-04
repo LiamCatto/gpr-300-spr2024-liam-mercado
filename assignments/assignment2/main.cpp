@@ -16,7 +16,7 @@
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 GLFWwindow* initWindow(const char* title, int width, int height);
-void drawUI(ew::Camera* camera, ew::CameraController* cameraController);
+void drawUI(ew::Camera* camera, ew::CameraController* cameraController, int texture);
 void resetCamera(ew::Camera* camera, ew::CameraController* controller);
 
 //Global state
@@ -33,6 +33,11 @@ struct Material {
 }material;
 
 glm::vec3 lightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+glm::vec3 lightPosition = glm::vec3(1.0f, 4.0f, 0.0f);
+glm::vec2 debugImageDimensions = glm::vec2(500, 500);
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+float maxBias = 0.05;
+float minBias = 0.005;
 
 int main() {
 	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
@@ -84,8 +89,6 @@ int main() {
 	glGenFramebuffers(1, &shadowFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 
-	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-
 	unsigned int depthMap;
 	glGenTextures(1, &depthMap);
 	glActiveTexture(GL_TEXTURE1);
@@ -120,11 +123,12 @@ int main() {
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
+		glCullFace(GL_FRONT);
 
 		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
 		glm::mat4 lightView = glm::lookAt(
 			//glm::vec3(-2.0f, 4.0f, -1.0f),
-			glm::vec3(0.0f, 4.0f, 1.0f),
+			lightPosition,	// Cannot be directly above an object
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		);
@@ -149,6 +153,7 @@ int main() {
 		glViewport(0, 0, screenWidth, screenHeight);
 		glClearColor(0.6f, 0.8f, 0.92f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glCullFace(GL_BACK);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, brickTexture);
@@ -157,8 +162,9 @@ int main() {
 
 		shader.use();
 		shader.setMat4("lightSpaceMatrix", lightSpaceMatrix); // Added by Liam
-		shader.setVec3("_LightDirection", lightDirection);	// Added by Liam
+		shader.setVec3("_LightDirection", glm::normalize(lightDirection));	// Added by Liam
 		shader.setInt("shadowMap", 1); // Added by Liam
+		shader.setFloat("_MaxBias", maxBias); // Added by Liam
 		shader.setMat4("_Model", glm::mat4(1.0f));
 		shader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
 		shader.setVec3("_EyePos", camera.position);
@@ -177,26 +183,18 @@ int main() {
 		monkeyModel.draw(); //Draws monkey model using current shader
 
 		shader.setMat4("_Model", glm::mat4(1.0f));
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, depthMap);
 		floor.draw(ew::DrawMode::TRIANGLES);
 
 		cameraController.move(window, &camera, deltaTime);
 
-
-
-		// Left off on Improving Shadow Maps in the tutorial and Improvements in the slide show
-
-
-
-		drawUI(&camera, &cameraController);
+		drawUI(&camera, &cameraController, depthMap);
 
 		glfwSwapBuffers(window);
 	}
 	printf("Shutting down...");
 }
 
-void drawUI(ew::Camera* camera, ew::CameraController* cameraController) {
+void drawUI(ew::Camera* camera, ew::CameraController* cameraController, int texture) {
 	ImGui_ImplGlfw_NewFrame();
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui::NewFrame();
@@ -209,7 +207,13 @@ void drawUI(ew::Camera* camera, ew::CameraController* cameraController) {
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
 	}
 	if (ImGui::CollapsingHeader("Lighting")) {
-		ImGui::InputFloat3("Light Direction", &lightDirection.x);
+		ImGui::SliderFloat3("Light Direction", &lightDirection.x, -1.0, 1.0);
+		ImGui::SliderFloat3("Light Position", &lightPosition.x, -10.0, 10.0);
+		if (glm::vec2(lightPosition.x, lightPosition.y) == glm::vec2(0.0, 0.0)) lightPosition.x = 1.0;
+		ImGui::InputFloat("Maximum Shadow Bias", &maxBias);
+		ImGui::InputFloat("Minimum Shadow Bias", &minBias);
+		ImGui::InputFloat2("Image Dimensions", &debugImageDimensions.x);
+		ImGui::Image((void*)texture, ImVec2(debugImageDimensions.x, debugImageDimensions.y));
 	}
 	ImGui::End();
 

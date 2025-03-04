@@ -14,6 +14,8 @@ uniform vec3 _EyePos;
 uniform vec3 _LightDirection = vec3(0.0,-1.0,0.0);
 uniform vec3 _LightColor = vec3(1.0);
 uniform vec3 _AmbientColor = vec3(0.3,0.4,0.46);
+uniform float _MaxBias = 0.05;
+uniform float _MinBias = 0.005;
 
 struct Material{
 	float Ka; //Ambient coefficient (0-1)
@@ -33,10 +35,11 @@ float ShadowCalculation(vec4 lightSpacePos)	// Added by Liam
 	
 	//Convert from [-1,1] to [0,1]
 	sampleCoord = sampleCoord * 0.5 + 0.5;
-
+	
+	float bias = max(_MaxBias * (1.0 - dot(fs_in.WorldNormal, _LightDirection)), _MinBias);
 	float myDepth = sampleCoord.z; 
 	float shadowMapDepth = texture(shadowMap, sampleCoord.xy).r; 
-	if (myDepth > shadowMapDepth)
+	if (myDepth - bias > shadowMapDepth)
 	{
 		//In shadow!
         return 1.0;
@@ -62,8 +65,8 @@ void main(){
 	//Combination of specular and diffuse reflection
 	
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace);  // Added by Liam
-	vec3 lightColor = (_Material.Kd * diffuseFactor + _Material.Ks * specularFactor * (1.0 - shadow)) * _LightColor;	// " * (1.0 - shadow)" added by Liam
-	lightColor+=_AmbientColor * _Material.Ka;
+	vec3 lightColor = (_Material.Kd * diffuseFactor + _Material.Ks * specularFactor) * _LightColor;
+	lightColor+=_AmbientColor * _Material.Ka * (1.0 - shadow); // " * (1.0 - shadow)" added by Liam
 	vec3 objectColor = texture(_MainTex,fs_in.TexCoord).rgb;
 	FragColor = vec4(objectColor * lightColor,1.0);
 }
