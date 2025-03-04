@@ -117,10 +117,14 @@ int main() {
 
 		// Shadow Pass
 
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
 		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, lightNearPlane, lightFarPlane);
 		glm::mat4 lightView = glm::lookAt(
 			//glm::vec3(-2.0f, 4.0f, -1.0f),
-			glm::vec3(0.0f, 4.0f, 0.0f),
+			glm::vec3(0.0f, 4.0f, 1.0f),
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		);
@@ -129,14 +133,12 @@ int main() {
 		shadowShader.use();
 		shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		shadowShader.setMat4("model", monkeyTransform.modelMatrix());
 		monkeyModel.draw(); //Draws monkey model using current shader
 
+		shadowShader.setMat4("model", glm::mat4(1.0f));
 		floor.draw(ew::DrawMode::TRIANGLES);
 		
 		cameraController.move(window, &camera, deltaTime);
@@ -175,6 +177,8 @@ int main() {
 		monkeyModel.draw(); //Draws monkey model using current shader
 
 		shader.setMat4("_Model", glm::mat4(1.0f));
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, depthMap);
 		floor.draw(ew::DrawMode::TRIANGLES);
 
 		cameraController.move(window, &camera, deltaTime);
@@ -182,11 +186,6 @@ int main() {
 
 
 		// Left off on Improving Shadow Maps in the tutorial and Improvements in the slide show
-
-		// Shadows aren't appearing on the plane at all. Maybe the light space calculations are wrong?
-
-		// try debugging by looking at the tutorial's debug depth map shaders and display the depth map on the floor plane
-
 
 
 
