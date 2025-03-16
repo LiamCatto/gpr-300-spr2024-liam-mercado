@@ -396,7 +396,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   clip: {fileID: 0}
   settingsPanel: {fileID: 1819261207}
-  keyframeUIPrefab: {fileID: 4696315661366586399, guid: 638ccdc440443e541a737c41eac88624, type: 3}
+  keyframeUIPrefab: {fileID: 8459444904684146365, guid: e74705fb0991cfd46860dd480c29cf87, type: 3}
   targetObject: {fileID: 1757793473}
   isLooping: 0
   playbackSpeed: 0
@@ -1314,8 +1314,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 100, y: -118.75}
-  m_SizeDelta: {x: 968, y: 773.5}
+  m_AnchoredPosition: {x: 100, y: -120}
+  m_SizeDelta: {x: 968, y: 770}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &345597473
 MonoBehaviour:

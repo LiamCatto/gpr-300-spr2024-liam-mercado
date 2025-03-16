@@ -2459,7 +2459,7 @@ GameObject:
   - component: {fileID: 3180680074242941528}
   - component: {fileID: 176435879335941828}
   m_Layer: 5
-  m_Name: Keyframe Setting 4 (TMPro) (2)
+  m_Name: Keyframe Setting 4 (TMPro)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3976,6 +3976,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0013c931e3dae0d47b74e675d461cb1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  uiCollapsed: 0
   positionKey: {x: 0, y: 0, z: 0}
   rotationKey: {x: 0, y: 0, z: 0}
   scaleKey: {x: 0, y: 0, z: 0}
@@ -5632,7 +5633,7 @@ GameObject:
   - component: {fileID: 1115990979999235190}
   - component: {fileID: 1672287605771648117}
   m_Layer: 5
-  m_Name: Keyframe Setting 3 (TMPro) (1)
+  m_Name: Keyframe Setting 3 (TMPro)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

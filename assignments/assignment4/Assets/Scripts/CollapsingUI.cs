@@ -42,12 +42,12 @@ public class CollapsingUI : MonoBehaviour
             }
         }
 
-        if (!isCollapsed) MoveHeaders(1);
-        else MoveHeaders(-1);
+        if (!isCollapsed) MoveHeaders(1, 302.5f);
+        else MoveHeaders(-1, 302.5f);
     }
 
     // sign should only be -1 or +1
-    private void MoveHeaders(float sign)
+    public void MoveHeaders(float sign, float deltaY)
     {
         RectTransform rt;
         int yFactor = 0;    // After the foreach statement reaches this header, start moving all other headers up
@@ -65,27 +65,28 @@ public class CollapsingUI : MonoBehaviour
 
                 if (child.gameObject.name == gameObject.name) yFactor = 0;
 
-                if (clickedID <= 0) rt.localPosition += new Vector3(0, sign * 305 * yFactor, 0);
-                else rt.localPosition += new Vector3(0, sign * 243 * yFactor, 0);
+                if (clickedID <= 0) rt.localPosition += new Vector3(0, sign * deltaY * yFactor, 0);
+                else rt.localPosition += new Vector3(0, sign * deltaY * yFactor, 0);
 
                 if (child.gameObject.name == gameObject.name) yFactor = 1;
             }
         }
 
-        if (gameObject.GetComponent<Keyframe>() != null)
+        transform.parent.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, sign * deltaY);
+        transform.parent.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, sign * deltaY / 2, 0);
+
+        /*if (gameObject.GetComponent<Keyframe>() != null)
         {
             if (gameObject.GetComponent<Keyframe>().keyframeID >= 1)
             {
-                transform.parent.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, sign * 243f);
-                transform.parent.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, sign * 121.5f, 0);
+                transform.parent.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, sign * 302.5f);
+                transform.parent.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, sign * 151.25f, 0);
             }
         }
         else
         {
             transform.parent.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, sign * 302.5f);
             transform.parent.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, sign * 151.25f, 0);
-        }
+        }*/
     }
 }
-
-// DEFINITELY didn't spend 10 hours just on UI...
