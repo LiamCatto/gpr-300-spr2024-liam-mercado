@@ -33,13 +33,23 @@ public class AnimationController : MonoBehaviour
         GameObject newKeyframe = GameObject.Instantiate(keyframeUIPrefab);
 
         newKeyframe.GetComponent<Keyframe>().keyframeID = clip.KeyframeList.Count + 1;
+        newKeyframe.GetComponent<Keyframe>().uiCollapsed = false;
         newKeyframe.transform.SetParent(settingsPanel.transform);
         newKeyframe.transform.GetComponentInChildren<TextMeshProUGUI>().text = "Keyframe " + newKeyframe.GetComponent<Keyframe>().keyframeID;
         newKeyframe.gameObject.name = "Keyframe Header " + newKeyframe.GetComponent<Keyframe>().keyframeID;
 
         Vector3 pos = settingsPanel.transform.Find("Initial Keyframe Header").transform.GetComponent<RectTransform>().localPosition;
         Vector3 scale = settingsPanel.transform.Find("Initial Keyframe Header").transform.GetComponent<RectTransform>().localScale;
-        newKeyframe.transform.GetComponent<RectTransform>().localPosition = pos - new Vector3(0, 380 + (318.5f * clip.KeyframeList.Count), 0);
+        int numCollapsed = 0;   // Number of keyframe headers that are currently collapsed in the UI
+        int numUnCollapsed = 0;
+
+        foreach (GameObject keyframe in clip.KeyframeList)
+        {
+            if (keyframe.GetComponent<Keyframe>().uiCollapsed) numCollapsed++;
+        }
+        numUnCollapsed = newKeyframe.GetComponent<Keyframe>().keyframeID - numCollapsed;
+
+        newKeyframe.transform.GetComponent<RectTransform>().localPosition = pos - new Vector3(0, 61.5f + (308.5f * numUnCollapsed) + (65.5f * numCollapsed) + (10 * newKeyframe.GetComponent<Keyframe>().keyframeID), 0);
         newKeyframe.transform.GetComponent<RectTransform>().localScale = scale;
 
         clip.KeyframeList.Add(newKeyframe);

@@ -10,6 +10,7 @@ public class Keyframe : MonoBehaviour
     public Vector3 scaleKey;
     public float time;
     public int keyframeID;
+    public bool uiCollapsed;
 
     // Start is called before the first frame update
     void Start()

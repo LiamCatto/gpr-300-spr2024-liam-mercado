@@ -30,11 +30,13 @@ public class CollapsingUI : MonoBehaviour
                 if (!isCollapsed)
                 {
                     child.gameObject.SetActive(false);
+                    if (gameObject.GetComponent<Keyframe>() != null) gameObject.GetComponent<Keyframe>().uiCollapsed = true;
                     if (child.gameObject.name == "Collapsed Background") child.gameObject.SetActive(true);
                 }
                 else
                 {
                     child.gameObject.SetActive(true);
+                    if (gameObject.GetComponent<Keyframe>() != null) gameObject.GetComponent<Keyframe>().uiCollapsed = false;
                     if (child.gameObject.name == "Collapsed Background") child.gameObject.SetActive(false);
                 }
             }
@@ -63,10 +65,6 @@ public class CollapsingUI : MonoBehaviour
 
                 if (child.gameObject.name == gameObject.name) yFactor = 0;
 
-
-                // Currently having three keyframes is not supported by the UI system
-
-
                 if (clickedID <= 0) rt.localPosition += new Vector3(0, sign * 305 * yFactor, 0);
                 else rt.localPosition += new Vector3(0, sign * 243 * yFactor, 0);
 
@@ -78,8 +76,8 @@ public class CollapsingUI : MonoBehaviour
         {
             if (gameObject.GetComponent<Keyframe>().keyframeID >= 1)
             {
-                transform.parent.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, sign * 245.5f);
-                transform.parent.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, sign * 122.75f, 0);
+                transform.parent.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, sign * 243f);
+                transform.parent.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, sign * 121.5f, 0);
             }
         }
         else
@@ -90,4 +88,4 @@ public class CollapsingUI : MonoBehaviour
     }
 }
 
-// DEFINITELY didn't spend 8.5 hours just on UI...
+// DEFINITELY didn't spend 10 hours just on UI...
