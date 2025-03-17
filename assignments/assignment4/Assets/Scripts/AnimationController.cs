@@ -37,24 +37,25 @@ public class AnimationController : MonoBehaviour
         newKeyframe.transform.SetParent(settingsPanel.transform);
         newKeyframe.transform.GetComponentInChildren<TextMeshProUGUI>().text = "Keyframe " + newKeyframe.GetComponent<Keyframe>().keyframeID;
         newKeyframe.gameObject.name = "Keyframe Header " + newKeyframe.GetComponent<Keyframe>().keyframeID;
+        int totalKeyframes = newKeyframe.GetComponent<Keyframe>().keyframeID;
 
-        Vector3 pos = settingsPanel.transform.Find("Initial Keyframe Header").transform.GetComponent<RectTransform>().localPosition;
+        Vector3 pos = new Vector3(0, -215, 0);  //settingsPanel.transform.Find("Initial Keyframe Header").transform.GetComponent<RectTransform>().localPosition;
         Vector3 scale = settingsPanel.transform.Find("Initial Keyframe Header").transform.GetComponent<RectTransform>().localScale;
         int numCollapsed = CountCollapsedHeaders();   // Number of keyframe headers that are currently collapsed in the UI
-        int numUnCollapsed = newKeyframe.GetComponent<Keyframe>().keyframeID - numCollapsed;
+        int numUnCollapsed = totalKeyframes - numCollapsed;
 
-        newKeyframe.transform.GetComponent<RectTransform>().localPosition = pos - new Vector3(0, (376 * numUnCollapsed) + (73.5f * numCollapsed) + (4f * newKeyframe.GetComponent<Keyframe>().keyframeID), 0);
+        newKeyframe.transform.GetComponent<RectTransform>().localPosition = pos - new Vector3(0, (376 * numUnCollapsed) + (73.5f * numCollapsed) + (4f * totalKeyframes), 0);
         newKeyframe.transform.GetComponent<RectTransform>().localScale = scale;
 
         clip.KeyframeList.Add(newKeyframe);
 
-        settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta += new Vector2(0, 378);
-        settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition -= new Vector3(0, 189, 0);
+        settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta += new Vector2(0, 380);
+        settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition -= new Vector3(0, 190, 0);
     }
     public void RemoveKeyframe(GameObject keyframe)
     {
         GameObject settingsPanel = keyframe.transform.parent.gameObject;
-        int totalHeaders = clip.KeyframeList.Count + 2;     // +1 since the list is indexed at 0 then -1 because this header is being removed then +2 more for the two initial headers
+        int totalHeaders = clip.KeyframeList.Count + 2;     // Wrong but seems to work (no plus one) --->  +1 since the list is indexed at 0 then -1 because this header is being removed then +2 more for the two initial headers
         int numCollapsed = CountCollapsedHeaders();
         if (keyframe.GetComponent<Keyframe>().uiCollapsed) numCollapsed--;
         int numUnCollapsed = totalHeaders - numCollapsed;
@@ -64,14 +65,30 @@ public class AnimationController : MonoBehaviour
         float oldUIYPos = -120;
         float oldUIHeight = 770;
 
-        settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta = new Vector2(uiWidth, uiHeight);
-        settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition = new Vector3(uiPosition.x, oldUIYPos - ((uiHeight - oldUIHeight) / 2), uiPosition.z);
+        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta = new Vector2(uiWidth, uiHeight);
+        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition = new Vector3(uiPosition.x, oldUIYPos - ((uiHeight - oldUIHeight) / 2), uiPosition.z);
 
-        if (keyframe.GetComponent<Keyframe>().uiCollapsed) keyframe.GetComponent<CollapsingUI>().MoveHeaders(-1, 76);
-        else keyframe.GetComponent<CollapsingUI>().MoveHeaders(-1, 378.5f);
+        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, 378);
+        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, 189, 0);
+
+        //if (keyframe.GetComponent<Keyframe>().uiCollapsed) keyframe.GetComponent<CollapsingUI>().MoveHeaders(-1, 76);
+        //else keyframe.GetComponent<CollapsingUI>().MoveHeaders(-1, 378.5f);
+        keyframe.GetComponent<CollapsingUI>().MoveHeaders(1, 380);
+
+        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, 2.5f);
+        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, 1.25f, 0);
 
         clip.KeyframeList.Remove(keyframe);
         Destroy(keyframe);
+
+        int counter = 1;
+        foreach (GameObject kf in clip.KeyframeList)
+        {
+            kf.GetComponent<Keyframe>().keyframeID = counter;
+            kf.gameObject.name = "Keyframe " + counter + " Header";
+            kf.transform.GetComponentInChildren<TextMeshProUGUI>().text = "Keyframe " + counter;
+            counter++;
+        }
 
         // still trying to get the background to be positioned correctly
         // how it ends up adding and removing 1 keyframe with 1 collapsed header: 1220      how it should be: 467.5
