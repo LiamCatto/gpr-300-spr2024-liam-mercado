@@ -15,17 +15,56 @@ public class AnimationController : MonoBehaviour
     public float playbackSpeed;
     public float playbackTime;
     public bool isPlaying;
+    
+    private int count;
+    private bool isAnimRunning;
+    private float timeStep;      // Number of time steps in a second
 
     // Start is called before the first frame update
     void Start()
     {
         clip = transform.GetComponent<AnimationClip>();
-    }
+        count = 0;
+        isAnimRunning = false;
+}
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        
+        timeStep = playbackSpeed;
+        if (playbackSpeed < 0) timeStep *= -1;
+        timeStep = 1 / timeStep;
+
+        if (isPlaying && clip.KeyframeList.Count > 1)
+        {
+            
+        }
+    }
+
+    IEnumerator Animate()
+    {
+        isAnimRunning = true;
+
+        yield return new WaitForSeconds(timeStep);
+
+        clip.KeyframeList[count].GetComponent<Keyframe>().Interpolate(clip.KeyframeList[count + 1], playbackTime);
+        playbackTime += timeStep;
+
+        // Implement duration
+
+        isAnimRunning = false;
+    }
+
+    public void StartAnimation()
+    {
+        if (!isPlaying)
+        {
+            isPlaying = true;
+        }
+        else
+        {
+            isPlaying = false;
+        }
     }
 
     public void AddKeyframe()
@@ -93,7 +132,6 @@ public class AnimationController : MonoBehaviour
         // still trying to get the background to be positioned correctly
         // how it ends up adding and removing 1 keyframe with 1 collapsed header: 1220      how it should be: 467.5
     }
-
     public int CountCollapsedHeaders()
     {
         int num = 0;
