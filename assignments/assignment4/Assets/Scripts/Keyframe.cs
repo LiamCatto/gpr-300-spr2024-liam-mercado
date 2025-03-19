@@ -29,13 +29,4 @@ public class Keyframe : MonoBehaviour
     {
         GameObject.FindGameObjectWithTag("Animator").GetComponent<AnimationController>().RemoveKeyframe(keyframe);
     }
-
-    public void Interpolate(GameObject nextKeyframe, float t)
-    {
-        Keyframe next = nextKeyframe.gameObject.GetComponent<Keyframe>();
-
-        Vector3.Lerp(positionKey, next.positionKey, t);
-        Vector3.Lerp(rotationKey, next.rotationKey, t);
-        Vector3.Lerp(scaleKey, next.scaleKey, t);
-    }
 }

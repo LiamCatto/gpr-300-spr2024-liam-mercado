@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class AnimationController : MonoBehaviour
 {
@@ -26,31 +28,50 @@ public class AnimationController : MonoBehaviour
         clip = transform.GetComponent<AnimationClip>();
         count = 0;
         isAnimRunning = false;
+        isPlaying = false;
 }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        UpdateStats();
+
         timeStep = playbackSpeed;
         if (playbackSpeed < 0) timeStep *= -1;
         timeStep = 1 / timeStep;
 
-        if (isPlaying && clip.KeyframeList.Count > 1)
+        if (isPlaying && clip.KeyframeList.Count > 0 && playbackTime < clip.duration)
         {
-            
+            if (!isAnimRunning) StartCoroutine(Animate());
         }
+    }
+
+    private void UpdateStats()
+    {
+        GameObject animHeader = settingsPanel.transform.Find("Animation Header").gameObject;
+
+        clip.duration = float.Parse(animHeader.transform.Find("Animation Setting 1 (TMPro)").Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text);
+        playbackSpeed = float.Parse(animHeader.transform.Find("Animation Setting 2 (TMPro)").Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text);
+        playbackTime = float.Parse(animHeader.transform.Find("Animation Setting 3 (TMPro)").Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text);
+        isLooping = animHeader.transform.Find("Animation Setting 4 (TMPro)").Find("Toggle").gameObject.GetComponent<UnityEngine.UI.Toggle>().isOn;
     }
 
     IEnumerator Animate()
     {
         isAnimRunning = true;
 
-        yield return new WaitForSeconds(timeStep);
+        Vector3[] frameData = new Vector3[3];
 
-        clip.KeyframeList[count].GetComponent<Keyframe>().Interpolate(clip.KeyframeList[count + 1], playbackTime);
+        if (count == 0) frameData = clip.Interpolate(settingsPanel.transform.Find("Initial Keyframe Header").gameObject, clip.KeyframeList[count], playbackTime);
+        else frameData = clip.Interpolate(clip.KeyframeList[count], clip.KeyframeList[count + 1], playbackTime);
+        
+        targetObject.transform.position = frameData[0];
+        targetObject.transform.rotation = Quaternion.Euler(frameData[1]);
+        targetObject.transform.localScale = frameData[2];
+
         playbackTime += timeStep;
 
-        // Implement duration
+        yield return new WaitForSeconds(timeStep);
 
         isAnimRunning = false;
     }
@@ -101,8 +122,8 @@ public class AnimationController : MonoBehaviour
         float uiHeight = (376 * numUnCollapsed) + (73.5f * numCollapsed) + (4f * totalHeaders);
         float uiWidth = settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta.x;
         Vector3 uiPosition = settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition;
-        float oldUIYPos = -120;
-        float oldUIHeight = 770;
+        //float oldUIYPos = -120;
+        //float oldUIHeight = 770;
 
         //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta = new Vector2(uiWidth, uiHeight);
         //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition = new Vector3(uiPosition.x, oldUIYPos - ((uiHeight - oldUIHeight) / 2), uiPosition.z);
