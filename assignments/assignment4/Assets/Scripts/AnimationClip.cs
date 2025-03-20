@@ -20,6 +20,7 @@ public class AnimationClip : MonoBehaviour
     {
         
     }
+
     public Vector3[] Interpolate(GameObject currKeyframe, GameObject nextKeyframe, float t)
     {
         Keyframe next = nextKeyframe.gameObject.GetComponent<Keyframe>();

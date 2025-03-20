@@ -455,7 +455,7 @@ GameObject:
   - component: {fileID: 8734329823951268599}
   - component: {fileID: 7959068037804218367}
   m_Layer: 5
-  m_Name: Initial Keyframe Setting 4 (TMPro) (2)
+  m_Name: Keyframe Setting 4 (TMPro)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1500,7 +1500,7 @@ GameObject:
   - component: {fileID: 2382657839064509516}
   - component: {fileID: 5464140943901578263}
   m_Layer: 5
-  m_Name: Initial Keyframe Setting 2 (TMPro)
+  m_Name: Keyframe Setting 2 (TMPro)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2835,7 +2835,7 @@ GameObject:
   - component: {fileID: 2176658805356415072}
   - component: {fileID: 1557255898924060409}
   m_Layer: 5
-  m_Name: Add Keyframe
+  m_Name: Remove Keyframe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3624,7 +3624,7 @@ GameObject:
   - component: {fileID: 3826384273515694271}
   - component: {fileID: 5254381280720921185}
   m_Layer: 5
-  m_Name: Initial Keyframe Setting 1 (TMPro)
+  m_Name: Keyframe Setting 1 (TMPro)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4586,7 +4586,7 @@ GameObject:
   - component: {fileID: 47051017468669209}
   - component: {fileID: 4287739183562608272}
   m_Layer: 5
-  m_Name: Initial Keyframe Setting 3 (TMPro) (1)
+  m_Name: Keyframe Setting 3 (TMPro)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6308,7 +6308,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8459444904684146365}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -6322,7 +6322,7 @@ RectTransform:
   - {fileID: 6566212145840705217}
   - {fileID: 2176658805356415072}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -215}

@@ -4,7 +4,7 @@ using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.UI;
+//using UnityEngine.UI;
 
 public class AnimationController : MonoBehaviour
 {
@@ -21,6 +21,7 @@ public class AnimationController : MonoBehaviour
     private int count;
     private bool isAnimRunning;
     private float timeStep;      // Number of time steps in a second
+    private float timeStepInterval = 0.05f;
 
     // Start is called before the first frame update
     void Start()
@@ -36,9 +37,9 @@ public class AnimationController : MonoBehaviour
     {
         UpdateStats();
 
-        timeStep = playbackSpeed;
-        if (playbackSpeed < 0) timeStep *= -1;
-        timeStep = 1 / timeStep;
+        Transform playAnimationButton = settingsPanel.transform.Find("Animation Header").Find("Play Animation").Find("Button");
+        if (isPlaying) playAnimationButton.Find("Text (TMP)").gameObject.GetComponent<TextMeshProUGUI>().text = "Playing";
+        else playAnimationButton.Find("Text (TMP)").gameObject.GetComponent<TextMeshProUGUI>().text = "Play Animation";
 
         if (isPlaying && clip.KeyframeList.Count > 0 && playbackTime < clip.duration)
         {
@@ -54,6 +55,46 @@ public class AnimationController : MonoBehaviour
         playbackSpeed = float.Parse(animHeader.transform.Find("Animation Setting 2 (TMPro)").Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text);
         playbackTime = float.Parse(animHeader.transform.Find("Animation Setting 3 (TMPro)").Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text);
         isLooping = animHeader.transform.Find("Animation Setting 4 (TMPro)").Find("Toggle").gameObject.GetComponent<UnityEngine.UI.Toggle>().isOn;
+
+        if (!isPlaying)
+        {
+            playbackTime = 0;
+            count = 0;
+        }
+
+        // Update keyframe stats
+
+        foreach (GameObject keyframe in clip.KeyframeList)
+        {
+            Keyframe keyframeScript = keyframe.GetComponent<Keyframe>();
+            Transform keyHeader = settingsPanel.transform.Find("Keyframe Header " + keyframeScript.keyframeID);
+
+            keyframeScript.time = float.Parse(keyHeader.Find("Keyframe Setting 1 (TMPro)").Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text);
+
+            Transform setting2 = keyHeader.Find("Keyframe Setting 2 (TMPro)");
+            keyframeScript.positionKey = new Vector3
+                (
+                    float.Parse(setting2.Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text),
+                    float.Parse(setting2.Find("InputField (TMP) (1)").gameObject.GetComponent<TMP_InputField>().text),
+                    float.Parse(setting2.Find("InputField (TMP) (2)").gameObject.GetComponent<TMP_InputField>().text)
+                );
+
+            Transform setting3 = keyHeader.Find("Keyframe Setting 3 (TMPro)");
+            keyframeScript.rotationKey = new Vector3
+                (
+                    float.Parse(setting3.Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text),
+                    float.Parse(setting3.Find("InputField (TMP) (1)").gameObject.GetComponent<TMP_InputField>().text),
+                    float.Parse(setting3.Find("InputField (TMP) (2)").gameObject.GetComponent<TMP_InputField>().text)
+                );
+
+            Transform setting4 = keyHeader.Find("Keyframe Setting 4 (TMPro)");
+            keyframeScript.scaleKey = new Vector3
+                (
+                    float.Parse(setting4.Find("InputField (TMP)").gameObject.GetComponent<TMP_InputField>().text),
+                    float.Parse(setting4.Find("InputField (TMP) (1)").gameObject.GetComponent<TMP_InputField>().text),
+                    float.Parse(setting4.Find("InputField (TMP) (2)").gameObject.GetComponent<TMP_InputField>().text)
+                );
+        }
     }
 
     IEnumerator Animate()
@@ -61,31 +102,40 @@ public class AnimationController : MonoBehaviour
         isAnimRunning = true;
 
         Vector3[] frameData = new Vector3[3];
+        GameObject nextKeyframe = clip.KeyframeList[count];
 
-        if (count == 0) frameData = clip.Interpolate(settingsPanel.transform.Find("Initial Keyframe Header").gameObject, clip.KeyframeList[count], playbackTime);
-        else frameData = clip.Interpolate(clip.KeyframeList[count], clip.KeyframeList[count + 1], playbackTime);
+        if (count == 0)
+        {
+            frameData = clip.Interpolate(settingsPanel.transform.Find("Initial Keyframe Header").gameObject, nextKeyframe, timeStep);
+        }
+        else
+        {
+            frameData = clip.Interpolate(clip.KeyframeList[count - 1], nextKeyframe, timeStep);
+        }
         
         targetObject.transform.position = frameData[0];
         targetObject.transform.rotation = Quaternion.Euler(frameData[1]);
         targetObject.transform.localScale = frameData[2];
 
+        timeStep += timeStepInterval;
         playbackTime += timeStep;
 
-        yield return new WaitForSeconds(timeStep);
+        yield return new WaitForSeconds(timeStepInterval / playbackSpeed);
+
+        if (timeStep >= nextKeyframe.GetComponent<Keyframe>().time)
+        {
+            count++;
+            timeStep = 0;
+        }
+
+        if (count >= clip.KeyframeList.Count) isPlaying = false;
 
         isAnimRunning = false;
     }
 
     public void StartAnimation()
     {
-        if (!isPlaying)
-        {
-            isPlaying = true;
-        }
-        else
-        {
-            isPlaying = false;
-        }
+        if (!isPlaying) isPlaying = true;
     }
 
     public void AddKeyframe()
@@ -99,7 +149,7 @@ public class AnimationController : MonoBehaviour
         newKeyframe.gameObject.name = "Keyframe Header " + newKeyframe.GetComponent<Keyframe>().keyframeID;
         int totalKeyframes = newKeyframe.GetComponent<Keyframe>().keyframeID;
 
-        Vector3 pos = new Vector3(0, -215, 0);  //settingsPanel.transform.Find("Initial Keyframe Header").transform.GetComponent<RectTransform>().localPosition;
+        Vector3 pos = new Vector3(0, -215, 0);
         Vector3 scale = settingsPanel.transform.Find("Initial Keyframe Header").transform.GetComponent<RectTransform>().localScale;
         int numCollapsed = CountCollapsedHeaders();   // Number of keyframe headers that are currently collapsed in the UI
         int numUnCollapsed = totalKeyframes - numCollapsed;
@@ -122,21 +172,8 @@ public class AnimationController : MonoBehaviour
         float uiHeight = (376 * numUnCollapsed) + (73.5f * numCollapsed) + (4f * totalHeaders);
         float uiWidth = settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta.x;
         Vector3 uiPosition = settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition;
-        //float oldUIYPos = -120;
-        //float oldUIHeight = 770;
 
-        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta = new Vector2(uiWidth, uiHeight);
-        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition = new Vector3(uiPosition.x, oldUIYPos - ((uiHeight - oldUIHeight) / 2), uiPosition.z);
-
-        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, 378);
-        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, 189, 0);
-
-        //if (keyframe.GetComponent<Keyframe>().uiCollapsed) keyframe.GetComponent<CollapsingUI>().MoveHeaders(-1, 76);
-        //else keyframe.GetComponent<CollapsingUI>().MoveHeaders(-1, 378.5f);
         keyframe.GetComponent<CollapsingUI>().MoveHeaders(1, 380);
-
-        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().sizeDelta -= new Vector2(0, 2.5f);
-        //settingsPanel.transform.Find("Background").transform.GetComponent<RectTransform>().localPosition += new Vector3(0, 1.25f, 0);
 
         clip.KeyframeList.Remove(keyframe);
         Destroy(keyframe);
@@ -149,9 +186,6 @@ public class AnimationController : MonoBehaviour
             kf.transform.GetComponentInChildren<TextMeshProUGUI>().text = "Keyframe " + counter;
             counter++;
         }
-
-        // still trying to get the background to be positioned correctly
-        // how it ends up adding and removing 1 keyframe with 1 collapsed header: 1220      how it should be: 467.5
     }
     public int CountCollapsedHeaders()
     {
