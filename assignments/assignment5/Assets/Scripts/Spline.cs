@@ -4,36 +4,85 @@ using UnityEngine;
 
 public class Spline : MonoBehaviour
 {
-    public List<GameObject> knots;
+    //public List<GameObject> knots;
+    public LineRenderer lr;
     public float timeStep;
 
-    private int index;
-    private int countTimeSteps;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        index = 0;
-    }
-
-    // Update is called once per frame
     void Update()
     {
+        //Gizmos.color = Color.blue;
+        //knots.Clear();
+
+        List<GameObject> knots = new List<GameObject>();
+        foreach (Transform child in transform)
+        {
+            knots.Add(child.gameObject);
+        }
+        //knots.AddRange(GameObject.FindGameObjectsWithTag("Knot"));       // NOTE: Adds knots backwards (index 0 is the end knot)
+
+        lr = gameObject.GetComponent<LineRenderer>();
+        lr.enabled = true;
+
+        int counter = 0;
         foreach (GameObject knot in knots)
         {
-            if (knot.GetComponent<Knot>().knotID != knots.Count)
-            {
-                CubicBezier(knot, knots[index + 1]);
-            }
-            index++;
+            Knot knotScript = knot.GetComponent<Knot>();
+
+            if (!knotScript.wasInitiated) knotScript.Initiate(counter, knots.Count);
+
+            counter++;
         }
 
-        countTimeSteps++;
-        if (countTimeSteps >= 1) countTimeSteps = 0;
+        for (int i = 1; i < knots.Count; i++)
+        {
+            if (knots[i].GetComponent<Knot>().knotID != knots.Count)
+            {
+                CubicBezier(knots[i - 1], knots[i]);
+            }
+        }
+
     }
 
+    // knot1 should always be the starting point with knot2 being the end
     private void CubicBezier(GameObject knot1, GameObject knot2)
     {
-        //if (knot1.GetComponent<Knot>().controlPoints.Count == 1) Vector3 point = Vector3.Lerp(knot1.transform.position, knot1.GetComponent<Knot>().controlPoints[0].transform.position, timeStep);
+        List<Vector3> drawPoints = new List<Vector3>();
+        List<Vector3> points = new List<Vector3>(new Vector3[] 
+            { 
+                knot1.transform.position,
+                knot1.GetComponent<Knot>().forwardControlPoint.transform.localPosition,
+                knot2.GetComponent<Knot>().backwardControlPoint.transform.localPosition,
+                knot2.transform.position
+            }
+        );
+
+        for (float i = 0; i < 1 / timeStep; i += timeStep)
+        {
+            drawPoints.Add(RecursiveLerp(points, i));
+        }
+
+        foreach (Vector3 pos in drawPoints)
+        {
+            //Debug.Log(pos);
+        }
+
+        lr.positionCount = drawPoints.Count;
+        lr.SetPositions(drawPoints.ToArray());
+    }
+
+    private Vector3 RecursiveLerp(List<Vector3> points, float t)
+    {
+        if (points.Count == 1)
+        {
+            return points[0];
+        }
+
+        List<Vector3> newPoints = new List<Vector3>();
+        for (int i = 1; i < points.Count; i++)
+        {
+            newPoints.Add(Vector3.Lerp(points[i - 1], points[i], t));
+        }
+
+        return RecursiveLerp(newPoints, t);
     }
 }

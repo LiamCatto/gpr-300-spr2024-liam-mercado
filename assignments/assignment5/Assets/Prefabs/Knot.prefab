@@ -117,7 +117,7 @@ GameObject:
   - component: {fileID: 9064587926568197053}
   m_Layer: 0
   m_Name: Knot
-  m_TagString: Untagged
+  m_TagString: Knot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -150,6 +150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df75e2ecb5cbe1e408aca126e393470f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  controlPoints: []
+  forwardControlPoint: {fileID: 0}
+  backwardControlPoint: {fileID: 0}
   controlPointPrefab: {fileID: 1683238440650743506, guid: 519847d58079d554c9b1a55570af710f, type: 3}
   knotID: 0
