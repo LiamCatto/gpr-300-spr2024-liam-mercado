@@ -11,18 +11,29 @@ public class Knot : MonoBehaviour
     public Vector3 defaultControlPointPos;
     public int knotID;
     
-    [HideInInspector] public bool wasInitiated;
+    [HideInInspector] public bool isInitiated;
     [HideInInspector] public bool isConnectingPoint;       // If true, this knot is not at either end of the line and therefore is a connecting point between curves.
 
     private GameObject spline;
-
-    void Start()
+    private void Start()
     {
-        wasInitiated = false;
+        isInitiated = false;
     }
     private void Update()
     {
         UpdateStats();
+    }
+    private void OnDestroy()
+    {
+        List<GameObject> knotList = GameObject.FindGameObjectWithTag("Curve").GetComponent<Spline>().knots;
+
+        foreach (GameObject knot in knotList)
+        {
+            knot.GetComponent<Knot>().isInitiated = false;
+        }
+
+        //if (knotID == 0 && spline.GetComponent<Spline>().knots.Count > 1) Destroy(knotList[knotID + 1].GetComponent<Knot>().backwardControlPoint);
+        //if (knotID == spline.GetComponent<Spline>().knots.Count) Destroy(knotList[knotID - 1].GetComponent<Knot>().forwardControlPoint);
     }
     public void Initiate(int id, int knotCount)
     {
@@ -31,8 +42,11 @@ public class Knot : MonoBehaviour
 
         //int knotCount = spline.GetComponent<Spline>().knots.Count - 1;
         //knotID = knotCount;
-        wasInitiated = true;
+        isInitiated = true;
         knotID = id;
+
+        if (forwardControlPoint != null) Destroy(forwardControlPoint.gameObject);
+        if (backwardControlPoint != null) Destroy(backwardControlPoint.gameObject);
 
         GameObject newControlPoint;
         if (knotID == 0 || knotID == knotCount - 1)
@@ -68,13 +82,15 @@ public class Knot : MonoBehaviour
             backwardControlPoint = newControlPoint;
         }
     }
-    void UpdateStats()
+    private void UpdateStats()
     {
+        // Keep all scale values the same as the x value and prevent them from reaching or going below zero
         float scaleFactor = transform.localScale.x;
 
         transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
         if (transform.localScale.x < 0) transform.localScale = Vector3.one / 100;
 
+        // Adjust the scale of each child to keep their sizes consistent while still allowing their position values to be scaled
         foreach (Transform child in transform)
         {
             child.localScale = Vector3.one * (1/transform.localScale.x);

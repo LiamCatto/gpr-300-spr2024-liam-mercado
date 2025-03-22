@@ -4,21 +4,25 @@ using UnityEngine;
 
 public class Spline : MonoBehaviour
 {
-    //public List<GameObject> knots;
-    public LineRenderer lr;
+    public List<GameObject> knots;
+    public GameObject knotPrefab;
     public Color lineColor;
     public float timeStep;
 
+    private LineRenderer lr;
+    private List<Vector3> totalDrawPoints;
     void Update()
     {
-        //knots.Clear();
+        knots.Clear();
 
-        List<GameObject> knots = new List<GameObject>();
+        knots = new List<GameObject>();
         foreach (Transform child in transform)
         {
             knots.Add(child.gameObject);
         }
         //knots.AddRange(GameObject.FindGameObjectsWithTag("Knot"));       // NOTE: Adds knots backwards (index 0 is the end knot)
+
+        totalDrawPoints = new List<Vector3>();
 
         lr = gameObject.GetComponent<LineRenderer>();
         lr.enabled = true;
@@ -35,7 +39,7 @@ public class Spline : MonoBehaviour
         {
             Knot knotScript = knot.GetComponent<Knot>();
 
-            if (!knotScript.wasInitiated) knotScript.Initiate(counter, knots.Count);
+            if (!knotScript.isInitiated) knotScript.Initiate(counter, knots.Count);
 
             counter++;
         }
@@ -47,6 +51,20 @@ public class Spline : MonoBehaviour
                 CubicBezier(knots[i - 1], knots[i]);
             }
         }
+
+        lr.positionCount = totalDrawPoints.Count;
+        lr.SetPositions(totalDrawPoints.ToArray());
+    }
+    public void AddKnot()
+    {
+        GameObject newKnot = GameObject.Instantiate(knotPrefab);
+        Vector3 placementDirection = knots[knots.Count - 1].transform.position - knots[knots.Count - 2].transform.position;     // Direction in which the new knot will be placed relative to the last knot
+        newKnot.transform.position = knots[knots.Count - 1].transform.position + placementDirection;
+        newKnot.transform.parent = transform;
+
+        knots[knots.Count - 1].GetComponent<Knot>().isInitiated = false;
+
+        knots.Add(newKnot);
     }
 
     // knot1 should always be the starting point with knot2 being the end
@@ -67,8 +85,7 @@ public class Spline : MonoBehaviour
             drawPoints.Add(RecursiveLerp(points, i));
         }
 
-        lr.positionCount = drawPoints.Count;
-        lr.SetPositions(drawPoints.ToArray());
+        totalDrawPoints.AddRange(drawPoints.ToArray());
     }
 
     private Vector3 RecursiveLerp(List<Vector3> points, float t)
@@ -85,5 +102,5 @@ public class Spline : MonoBehaviour
         }
 
         return RecursiveLerp(newPoints, t);
-    }
+    }       
 }
