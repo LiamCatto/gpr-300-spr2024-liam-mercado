@@ -6,11 +6,11 @@ public class Spline : MonoBehaviour
 {
     //public List<GameObject> knots;
     public LineRenderer lr;
+    public Color lineColor;
     public float timeStep;
 
     void Update()
     {
-        //Gizmos.color = Color.blue;
         //knots.Clear();
 
         List<GameObject> knots = new List<GameObject>();
@@ -22,6 +22,13 @@ public class Spline : MonoBehaviour
 
         lr = gameObject.GetComponent<LineRenderer>();
         lr.enabled = true;
+
+        Gradient lineGradient = new Gradient();
+        lineGradient.SetKeys(
+            new GradientColorKey[] { new GradientColorKey(lineColor, 0.0f), new GradientColorKey(lineColor, 1.0f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) }
+        );
+        lr.colorGradient = lineGradient;
 
         int counter = 0;
         foreach (GameObject knot in knots)
@@ -40,18 +47,17 @@ public class Spline : MonoBehaviour
                 CubicBezier(knots[i - 1], knots[i]);
             }
         }
-
     }
 
     // knot1 should always be the starting point with knot2 being the end
     private void CubicBezier(GameObject knot1, GameObject knot2)
     {
         List<Vector3> drawPoints = new List<Vector3>();
-        List<Vector3> points = new List<Vector3>(new Vector3[] 
-            { 
+        List<Vector3> points = new List<Vector3>(
+            new Vector3[] { 
                 knot1.transform.position,
-                knot1.GetComponent<Knot>().forwardControlPoint.transform.localPosition,
-                knot2.GetComponent<Knot>().backwardControlPoint.transform.localPosition,
+                knot1.GetComponent<Knot>().forwardControlPoint.transform.position,
+                knot2.GetComponent<Knot>().backwardControlPoint.transform.position,
                 knot2.transform.position
             }
         );
@@ -59,11 +65,6 @@ public class Spline : MonoBehaviour
         for (float i = 0; i < 1 / timeStep; i += timeStep)
         {
             drawPoints.Add(RecursiveLerp(points, i));
-        }
-
-        foreach (Vector3 pos in drawPoints)
-        {
-            //Debug.Log(pos);
         }
 
         lr.positionCount = drawPoints.Count;

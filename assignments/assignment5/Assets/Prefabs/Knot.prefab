@@ -153,4 +153,7 @@ MonoBehaviour:
   forwardControlPoint: {fileID: 0}
   backwardControlPoint: {fileID: 0}
   controlPointPrefab: {fileID: 1683238440650743506, guid: 519847d58079d554c9b1a55570af710f, type: 3}
+  defaultControlPointPos: {x: 3, y: 0, z: 0}
   knotID: 0
+  wasInitiated: 0
+  isConnectingPoint: 0

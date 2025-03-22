@@ -170,10 +170,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0952bd3776d59c41a95a340b3745527, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  knots:
-  - {fileID: 0}
-  - {fileID: 0}
   lr: {fileID: 0}
+  lineColor: {r: 0, g: 1, b: 1, a: 1}
   timeStep: 0.05
 --- !u!120 &73498660
 LineRenderer:
@@ -196,7 +194,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -578,6 +576,10 @@ PrefabInstance:
     - target: {fileID: 7192798925943333008, guid: 89e30f99b35ffe44c9a939712e7f4928, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7192798925943333008, guid: 89e30f99b35ffe44c9a939712e7f4928, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
