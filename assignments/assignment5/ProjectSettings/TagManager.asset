@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Curve
   - Knot
+  - Canvas
   layers:
   - Default
   - TransparentFX

@@ -25,23 +25,18 @@ public class Knot : MonoBehaviour
     }
     private void OnDestroy()
     {
-        List<GameObject> knotList = GameObject.FindGameObjectWithTag("Curve").GetComponent<Spline>().knots;
-
-        foreach (GameObject knot in knotList)
+        if (GameObject.FindGameObjectWithTag("Curve"))
         {
-            knot.GetComponent<Knot>().isInitiated = false;
-        }
+            List<GameObject> knotList = GameObject.FindGameObjectWithTag("Curve").GetComponent<Spline>().knots;
 
-        //if (knotID == 0 && spline.GetComponent<Spline>().knots.Count > 1) Destroy(knotList[knotID + 1].GetComponent<Knot>().backwardControlPoint);
-        //if (knotID == spline.GetComponent<Spline>().knots.Count) Destroy(knotList[knotID - 1].GetComponent<Knot>().forwardControlPoint);
+            foreach (GameObject knot in knotList)
+            {
+                knot.GetComponent<Knot>().isInitiated = false;
+            }
+        }
     }
     public void Initiate(int id, int knotCount)
     {
-        //spline = GameObject.FindGameObjectWithTag("Curve");
-        //spline.GetComponent<Spline>().knots.Add(gameObject);
-
-        //int knotCount = spline.GetComponent<Spline>().knots.Count - 1;
-        //knotID = knotCount;
         isInitiated = true;
         knotID = id;
 

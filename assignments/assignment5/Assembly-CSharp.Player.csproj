@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Spline.cs" />
     <Compile Include="Assets\Scripts\Knot.cs" />
+    <Compile Include="Assets\Scripts\MovingObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
