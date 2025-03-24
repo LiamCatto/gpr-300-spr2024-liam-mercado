@@ -122,19 +122,6 @@ public class Spline : MonoBehaviour
         for (float i = 0; i < 1; i += timeStep)
         {
             drawPoints.Add(RecursiveLerp(points, i));
-            /*drawPoints.Add(
-                points[0] * (-1 * Mathf.Pow(i, 3) + 3 * Mathf.Pow(i, 2) - 3 * i + 1) +
-                points[1] * ( 3 * Mathf.Pow(i, 3) - 6 * Mathf.Pow(i, 2) + 3 * i) +
-                points[2] * (-3 * Mathf.Pow(i, 3) + 3 * Mathf.Pow(i, 2)) +
-                points[3] * ( 1 * Mathf.Pow(i, 3))
-            );*/
-            /*Vector3 ddt =                                                  // Direction the point should be facing
-                points[0] * (-3 * Mathf.Pow(i, 2) + 6  * i - 3) +
-                points[1] * ( 9 * Mathf.Pow(i, 2) - 12 * i + 3) +
-                points[2] * (-9 * Mathf.Pow(i, 2) + 6  * i) +
-                points[3] * ( 3 * Mathf.Pow(i, 2))
-            ;
-            Debug.DrawLine(drawPoints[drawPoints.Count - 1], 10 * ddt, Color.red, 1000);*/
         }
 
         return drawPoints.ToArray();
@@ -195,6 +182,8 @@ public class Spline : MonoBehaviour
 
         animationTarget.transform.position = totalDrawPoints[currAnimStep];
         animationTarget.transform.rotation = Quaternion.LookRotation(ddt, Vector3.up);
+
+        Debug.Log("animT: " + animT + " Step: " + currAnimStep + " V: " + ddt);
 
         animT += animStep;
         currAnimCurveStep += timeStep;
